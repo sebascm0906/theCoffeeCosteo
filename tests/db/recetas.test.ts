@@ -71,9 +71,10 @@ describe('recetas', () => {
 
   it('sube la versión de la receta en cada cambio y no deja cambiar su tipo', async () => {
     const p = await crearProducto(db, { nombre: 'P versión', precios: { Único: 50 } });
+    const antes = await db.query<{ version: number }>('select version from recetas where id = $1', [p]);
     await db.query(`update recetas set nombre = 'P versión 2' where id = $1`, [p]);
     const r = await db.query<{ version: number }>('select version from recetas where id = $1', [p]);
-    expect(r.rows[0].version).toBe(2);
+    expect(r.rows[0].version).toBe(antes.rows[0].version + 1);
     await expect(db.query(`update recetas set tipo = 'subreceta', rendimiento = 1, unidad_rendimiento = 'ml', categoria_id = null where id = $1`, [p])).rejects.toThrow(/tipo/);
   });
 
