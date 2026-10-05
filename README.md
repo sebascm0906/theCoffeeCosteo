@@ -1,28 +1,70 @@
 # Portal de Costeos The Coffee
 
-Base de datos (Supabase/Postgres) con el costeo de productos: insumos, recetas, sub-recetas, márgenes por canal y bitácora.
+Portal Next.js con acceso por invitación y base Supabase/Postgres: insumos, recetas, sub-recetas, márgenes por canal y bitácora. Los cálculos oficiales y los permisos viven en Postgres.
 
 ## Requisitos
 - Node 24+
 - No hace falta Docker: las pruebas usan PGlite (Postgres en proceso).
 
 ## Estructura
-- `supabase/migrations`: 7 migraciones (configuración y catálogos, recetas, vistas de costo, vistas de resumen y alertas, perfiles y bitácora, permisos RLS, precio manual por canal).
+- `app`, `components`, `lib`: pantallas, formularios y clientes Supabase con sesión del usuario.
+- `supabase/migrations`: 8 migraciones; la octava agrega guardado atómico de recetas y control de versión también para líneas, cantidades y precios.
 - `scripts/migracion`: migración del Excel (lectura, limpieza, plan de carga, conciliación y reporte).
 - `scripts/db`: utilidades para la base local con PGlite.
-- `tests`: pruebas de SQL, migración y paridad con el Excel.
+- `tests`: pruebas de SQL, migración, paridad con el Excel, sesión, servicios y componentes del portal.
+- `docs/portal/verificacion-plan-2.md`: resultados locales y guion pendiente para Supabase real.
 
 ## Roles
-- `compras`: edita insumos y proveedores.
-- `operaciones`: edita recetas, sub-recetas y tamaños.
-- `finanzas`: edita precios de lista, precios manuales por canal, parámetros y canales.
-- `admin`: todo lo anterior y además administra usuarios.
+- `compras`: edita insumos, proveedores y categorías de insumo.
+- `operaciones`: edita recetas, sub-recetas, categorías de producto y los tamaños que vende cada producto (sin capturar precios).
+- `finanzas`: edita precios de lista, precios manuales por canal, parámetros, canales y el catálogo de tamaños.
+- `admin`: todas las áreas y perfiles. En Plan 2, las cuentas se crean/invitan desde Supabase, no desde el portal.
+
+Todos los roles con perfil activo pueden consultar. Sin perfil o con perfil inactivo, una cuenta de Auth no accede a datos.
+
+## Iniciar el portal
+
+```bash
+npm ci
+npm run dev
+```
+
+Abrir `http://localhost:3000/login`. Sin configuración, aparece un aviso para configurar Supabase.
+El usuario agrega a su `.env.local` las variables `NEXT_PUBLIC_SUPABASE_URL` y `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` indicadas en `.env.example`. No pegar claves administrativas ni DATABASE_URL en variables NEXT_PUBLIC. El portal no necesita conexión SQL privilegiada.
+
+En Supabase, el usuario configura la URL local del sitio y las URLs permitidas de retorno. Para enlaces de invitación y recuperación, la plantilla de correo debe dirigir a:
+
+```text
+{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=invite
+{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=recovery
+```
+
+Se confirma el enlace y se establece contraseña; después se usa correo/contraseña para entrar. El flujo PKCE también acepta `/auth/confirm?code=...&next=/establecer-contrasena`. No hay registro libre. El administrador crea el perfil antes de que el invitado consulte datos.
+
+Para producción local: `npm run build` y `npm start`. El despliegue en Vercel sigue reservado para Plan 3.
+
+## Primer administrador y otras cuentas (acciones del usuario)
+
+Crear/invitar la cuenta en Supabase → Authentication → Users. Después ejecutar en su SQL Editor, sustituyendo el correo por el de la cuenta ya creada:
+
+```sql
+insert into public.perfiles (user_id, nombre, rol)
+select id, 'Administrador', 'admin'
+from auth.users where email = '<correo del administrador>';
+```
+
+Para otras cuentas, el administrador usa el mismo patrón con nombre y rol `compras`, `operaciones` o `finanzas`. Para desactivar acceso, cambia `perfiles.activo` a `false` desde Supabase. No es necesario borrar la cuenta ni los datos de negocio. No compartir contraseñas ni claves con el agente.
 
 ## Pruebas
 ```bash
 npm test
+npm run typecheck
+npm run build
+npm run format:check
 ```
 La prueba de paridad necesita el Excel en `datos/Modelo_Costeo_Corregido_2026.xlsx` (no se versiona).
+
+`npm run prueba:visual` abre un arnés de componentes separado en `http://127.0.0.1:4173`, con datos sintéticos, sin Auth ni escrituras. No es el portal ni verifica Supabase real. Las capturas están en `docs/portal/`.
 
 ## Migración del Excel
 ```bash

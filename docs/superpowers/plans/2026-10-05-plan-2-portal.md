@@ -1,7 +1,7 @@
 # Plan 2 — Portal web, acceso y editor de recetas
 
-**Fecha:** 2026-10-05  
-**Estado:** Listo para revisión; decisiones de alcance confirmadas y aprobación del documento requerida antes de implementar.
+**Fecha:** 2026-10-05
+**Estado:** Aprobado por el usuario e implementado localmente. Verificación contra Supabase Cloud pendiente del usuario.
 
 **Goal:** Consultar y administrar los datos del Plan 1 desde un portal en español, con acceso restringido a usuarios creados por el administrador y edición de recetas mediante selectores de catálogos.
 
@@ -9,7 +9,7 @@
 
 **Tech Stack:** Propuesto: Next.js, React, TypeScript, Tailwind, shadcn/ui, TanStack Table, Supabase JS y SSR; Vitest, Testing Library y PGlite. Seleccionar versiones compatibles y revisar documentación oficial al implementar, sin actualizar innecesariamente las herramientas del Plan 1.
 
-**Spec:** `docs/superpowers/specs/2026-10-05-portal-costeos-design.md`  
+**Spec:** `docs/superpowers/specs/2026-10-05-portal-costeos-design.md`
 **Referencia de formato:** `docs/superpowers/plans/2026-10-05-plan-1-base-de-datos-y-migracion.md`
 
 **Este es el plan 2 de 3.** La propuesta mantiene para Plan 3 carga masiva, exportación Excel, pantalla general de bitácora, despliegue Vercel y suite e2e completa. El historial contextual de una receta sí pertenece a su ficha en Plan 2.
@@ -26,7 +26,7 @@
 
 ## Decisiones confirmadas por el usuario
 
-El usuario confirmó las siguientes decisiones en este chat. Falta su aprobación del documento completo antes de implementar:
+El usuario confirmó estas decisiones y aprobó explícitamente el documento en este chat:
 
 | Decisión | Confirmación |
 |---|---|
@@ -103,10 +103,10 @@ La convención de renovación de sesión (middleware/proxy) y los archivos de co
 
 **Interfaces:** Mantener `npm test`, `npm run typecheck` y `npm run migracion`; añadir `dev`, `build`, `start`. Configurar pruebas DOM de TSX separadas del entorno Node/PGlite.
 
-- [ ] **Step 1:** Después de aprobación, verificar Git y crear `plan-2-portal`; fijar dependencias compatibles en lockfile.
-- [ ] **Step 2:** Crear base visual y arnés DOM, sin instalar ni ejecutar servicios Supabase.
-- [ ] **Step 3:** Probar render accesible y ejecutar suite original + typecheck + build con configuración ficticia de pruebas, sin conexión real.
-- [ ] **Step 4:** Commit `chore(portal): aplicación y arnés de pruebas`.
+- [x] **Step 1:** Después de aprobación, verificar Git y crear `plan-2-portal`; fijar dependencias compatibles en lockfile.
+- [x] **Step 2:** Crear base visual y arnés DOM, sin instalar ni ejecutar servicios Supabase.
+- [x] **Step 3:** Probar render accesible y ejecutar suite original + typecheck + build con configuración ficticia de pruebas, sin conexión real.
+- [x] **Step 4:** Commit `chore(portal): aplicación y arnés de pruebas`.
 
 **Terminado:** Aplicación compila y las 108 pruebas existentes siguen pasando; el importador conserva su funcionamiento.
 
@@ -118,10 +118,10 @@ La convención de renovación de sesión (middleware/proxy) y los archivos de co
 
 **Interfaces:** Cliente con sesión por petición; tipos fieles al SQL, incluidos numeric, campos nulos, vistas y precio manual. Matriz de permisos para UI; errores distinguen denegación, validación, inexistencia y conexión.
 
-- [ ] **Step 1:** Escribir pruebas de matriz por rol, numeric/nulos y errores de lectura; no convertir un error de conexión en una lista vacía.
-- [ ] **Step 2:** Implementar clientes y tipos a partir del esquema local; documentar posterior contraste con tipos generados por el usuario si hace falta.
-- [ ] **Step 3:** Verificar aislamiento entre peticiones y ausencia de claves privilegiadas en el bundle.
-- [ ] **Step 4:** Pruebas específicas + typecheck; commit `feat(portal): acceso tipado y permisos`.
+- [x] **Step 1:** Escribir pruebas de matriz por rol, numeric/nulos y errores de lectura; no convertir un error de conexión en una lista vacía.
+- [x] **Step 2:** Implementar clientes y tipos a partir del esquema local; documentar posterior contraste con tipos generados por el usuario si hace falta.
+- [x] **Step 3:** Verificar aislamiento entre peticiones y ausencia de claves privilegiadas en el bundle.
+- [x] **Step 4:** Pruebas específicas + typecheck; commit `feat(portal): acceso tipado y permisos`.
 
 **Terminado:** Consultas de negocio usan sesión del usuario y conservan precisión suficiente, nulos y avisos SQL.
 
@@ -134,11 +134,11 @@ La convención de renovación de sesión (middleware/proxy) y los archivos de co
 
 **Interfaces:** Correo/contraseña; cierre de sesión; callback de invitación y establecimiento de contraseña para cuentas previamente creadas. Sin signUp ni creación automática de perfiles. Confirmación restringida a redirecciones internas válidas.
 
-- [ ] **Step 1:** Probar login correcto/incorrecto, sesión vencida, ausencia/inactividad de perfil, cierre de sesión y callback inválido.
-- [ ] **Step 2:** Implementar comprobación de identidad con API verificada del SDK y perfil activo en lectura/escritura; renovación de cookies.
-- [ ] **Step 3:** Desactivar registro en configuración local (actualmente está habilitado); documentar que el usuario debe desactivarlo también en Cloud.
-- [ ] **Step 4:** Probar expiración durante captura: conserva borrador en memoria y pide reautenticación, sin guardar datos privados en almacenamiento persistente.
-- [ ] **Step 5:** Pruebas específicas + typecheck; commit `feat(auth): acceso restringido y sesión`.
+- [x] **Step 1:** Probar login correcto/incorrecto, sesión vencida, ausencia/inactividad de perfil, cierre de sesión y callback inválido.
+- [x] **Step 2:** Implementar comprobación de identidad con API verificada del SDK y perfil activo en lectura/escritura; renovación de cookies.
+- [x] **Step 3:** Desactivar registro en configuración local (actualmente está habilitado); documentar que el usuario debe desactivarlo también en Cloud.
+- [x] **Step 4:** Probar expiración durante captura: conserva borrador en memoria y pide reautenticación, sin guardar datos privados en almacenamiento persistente.
+- [x] **Step 5:** Pruebas específicas + typecheck; commit `feat(auth): acceso restringido y sesión`.
 
 **Terminado:** Rutas y acciones protegidas; usuario creado en Auth necesita perfil activo; no existe registro libre. Las pruebas con dobles del SDK no se presentan como validación de Auth Cloud.
 
@@ -151,10 +151,10 @@ La convención de renovación de sesión (middleware/proxy) y los archivos de co
 
 **Interfaces:** Leer `v_resumen`, `v_alerta_producto_canal`, recetas y catálogos. Búsqueda y filtros por categoría, canal, tamaño, alerta y estado; paginación sin truncar silenciosamente los resultados del API. Ficha por ID con cantidades, costos, precios y márgenes por tamaño/canal.
 
-- [ ] **Step 1:** Probar sin precio, costo 0, inactivos, múltiples tamaños/canales, precio calculado vs manual y comisión pendiente.
-- [ ] **Step 2:** Implementar consultas/filtros paginados y estados de carga, vacío, error e ID inexistente.
-- [ ] **Step 3:** Mostrar alerta al nivel producto/canal que produce SQL, sin recalcular reglas en JavaScript.
-- [ ] **Step 4:** Pruebas específicas + typecheck; commit `feat(portal): resumen y fichas de producto`.
+- [x] **Step 1:** Probar sin precio, costo 0, inactivos, múltiples tamaños/canales, precio calculado vs manual y comisión pendiente.
+- [x] **Step 2:** Implementar consultas/filtros paginados y estados de carga, vacío, error e ID inexistente.
+- [x] **Step 3:** Mostrar alerta al nivel producto/canal que produce SQL, sin recalcular reglas en JavaScript.
+- [x] **Step 4:** Pruebas específicas + typecheck; commit `feat(portal): resumen y fichas de producto`.
 
 **Terminado:** Totales mostrados provienen de SQL; todos los registros son alcanzables y los filtros conservan su estado al abrir una ficha.
 
@@ -166,12 +166,12 @@ La convención de renovación de sesión (middleware/proxy) y los archivos de co
 
 **Interfaces:** RPC `guardar_receta`: ID opcional para alta, versión esperada para edición, cabecera, tamaños y líneas con IDs y cantidades. Devuelve ID y versión; fallos distinguibles de conflicto/validación/permiso. No recibe precios ni identidad/rol del cliente.
 
-- [ ] **Step 1:** Probar primero alta y edición como operaciones/admin; rechazar anon, compras, finanzas, sin perfil e inactivo, incluso al llamar RPC directamente.
-- [ ] **Step 2:** Implementar función `security invoker`, SQL fijo, revocación explícita de EXECUTE a PUBLIC/anon y concesión solo a authenticated; RLS y triggers siguen activos.
-- [ ] **Step 3:** Bloquear receta, comparar versión y aplicar diff de cabecera, tamaños, líneas y cantidades en una transacción; conservar IDs de líneas existentes y rechazar IDs ajenos.
-- [ ] **Step 4:** Incrementar versión también en cambios de componentes/cantidades/tamaños hechos por rutas directas; definir orden uniforme de bloqueos. Probar que edición directa invalida borrador anterior. Reutilizar bloqueo de ciclos existente sin introducir interbloqueos.
-- [ ] **Step 5:** Probar rollback completo por cantidad inválida/ciclo, conflicto con versión vieja, preservación de precios de lista/manuales y bitácora con usuario real. Quitar tamaño debe limpiar dependencias y auditar cantidades antes de perder su vínculo con receta.
-- [ ] **Step 6:** Ejecutar `npm test` + typecheck; commit `feat(db): guardado atómico y versiones de recetas`.
+- [x] **Step 1:** Probar primero alta y edición como operaciones/admin; rechazar anon, compras, finanzas, sin perfil e inactivo, incluso al llamar RPC directamente.
+- [x] **Step 2:** Implementar función `security invoker`, SQL fijo, revocación explícita de EXECUTE a PUBLIC/anon y concesión solo a authenticated; RLS y triggers siguen activos.
+- [x] **Step 3:** Bloquear receta, comparar versión y aplicar diff de cabecera, tamaños, líneas y cantidades en una transacción; conservar IDs de líneas existentes y rechazar IDs ajenos.
+- [x] **Step 4:** Incrementar versión también en cambios de componentes/cantidades/tamaños hechos por rutas directas; definir orden uniforme de bloqueos. Probar que edición directa invalida borrador anterior. Reutilizar bloqueo de ciclos existente sin introducir interbloqueos.
+- [x] **Step 5:** Probar rollback completo por cantidad inválida/ciclo, conflicto con versión vieja, preservación de precios de lista/manuales y bitácora con usuario real. Quitar tamaño debe limpiar dependencias y auditar cantidades antes de perder su vínculo con receta.
+- [x] **Step 6:** Ejecutar `npm test` + typecheck; commit `feat(db): guardado atómico y versiones de recetas`.
 
 **Terminado:** Ninguna llamada deja una receta parcial o sobrescribe una versión obsoleta; no amplía permisos ni modifica fórmulas del Plan 1. PGlite verifica conflicto de versión secuencial; la concurrencia real de conexiones queda marcada para verificación Postgres por el usuario, sin afirmar cobertura que el arnés no ofrece.
 
@@ -184,11 +184,11 @@ La convención de renovación de sesión (middleware/proxy) y los archivos de co
 
 **Interfaces:** Componente insumo/sub-receta por ID con búsqueda; categoría y tamaños por catálogo; cantidad por tamaño y unidad visible derivada del componente. Alta, edición, orden de líneas y desactivación. Validación compartida cliente/servidor.
 
-- [ ] **Step 1:** Probar selección por teclado, ninguna relación por texto libre, números vacíos/negativos/no finitos, fila sin componente y duplicación de envío.
-- [ ] **Step 2:** Implementar editor con borrador y RPC; tamaños nuevos sin precio; advertir consecuencias antes de quitar tamaño.
-- [ ] **Step 3:** Mostrar componentes inactivos existentes sin borrarlos; impedir nuevas selecciones inactivas y autorreferencia; SQL sigue comprobando ciclos.
-- [ ] **Step 4:** Mostrar costo preliminar etiquetado; después de guardar recargar vistas oficiales e invalidar consultas afectadas. Conflicto conserva captura y permite comparar/recargar, sin sobrescritura automática.
-- [ ] **Step 5:** Pruebas específicas + typecheck; commit `feat(portal): editor de productos por catálogo`.
+- [x] **Step 1:** Probar selección por teclado, ninguna relación por texto libre, números vacíos/negativos/no finitos, fila sin componente y duplicación de envío.
+- [x] **Step 2:** Implementar editor con borrador y RPC; tamaños nuevos sin precio; advertir consecuencias antes de quitar tamaño.
+- [x] **Step 3:** Mostrar componentes inactivos existentes sin borrarlos; impedir nuevas selecciones inactivas y autorreferencia; SQL sigue comprobando ciclos.
+- [x] **Step 4:** Mostrar costo preliminar etiquetado; después de guardar recargar vistas oficiales e invalidar consultas afectadas. Conflicto conserva captura y permite comparar/recargar, sin sobrescritura automática.
+- [x] **Step 5:** Pruebas específicas + typecheck; commit `feat(portal): editor de productos por catálogo`.
 
 **Terminado:** Operaciones crea y edita una receta completa con dropdowns; otros roles consultan sin poder guardar recetas.
 
@@ -201,10 +201,10 @@ La convención de renovación de sesión (middleware/proxy) y los archivos de co
 
 **Interfaces:** Editor compartido con rendimiento > 0 y dropdown de unidad; cantidades sin tamaño; costo unitario SQL y lista de productos/sub-recetas afectados directa e indirectamente.
 
-- [ ] **Step 1:** Probar rendimiento, unidades, anidación, ciclo rechazado y referencias indirectas sin duplicados.
-- [ ] **Step 2:** Implementar lista, alta, edición y desactivación con aviso de impacto.
-- [ ] **Step 3:** Verificar que guardar actualiza costo de productos dependientes consultando vistas; prueba SQL de integración con RPC.
-- [ ] **Step 4:** Pruebas específicas + typecheck; commit `feat(portal): sub-recetas y dependencias`.
+- [x] **Step 1:** Probar rendimiento, unidades, anidación, ciclo rechazado y referencias indirectas sin duplicados.
+- [x] **Step 2:** Implementar lista, alta, edición y desactivación con aviso de impacto.
+- [x] **Step 3:** Verificar que guardar actualiza costo de productos dependientes consultando vistas; prueba SQL de integración con RPC.
+- [x] **Step 4:** Pruebas específicas + typecheck; commit `feat(portal): sub-recetas y dependencias`.
 
 **Terminado:** Sub-recetas reutilizables conservan unidades y se editan mediante el mismo contrato atómico.
 
@@ -217,10 +217,10 @@ La convención de renovación de sesión (middleware/proxy) y los archivos de co
 
 **Interfaces:** Finanzas/admin actualiza precio de lista existente y crea/edita/quita `precio_canal_manual` en canales con regla castigado; eliminar manual vuelve al calculado. Guardados de precios separados del editor de receta.
 
-- [ ] **Step 1:** Probar precio positivo/nulo, manual con nota, retiro de manual y prohibición en canales mostrador; rol ajeno y fila inexistente no producen éxito falso.
-- [ ] **Step 2:** Implementar escritura con sesión y retorno comprobado; no enviar columnas inmutables en updates.
-- [ ] **Step 3:** Refrescar ficha/resumen y mostrar ausencia de precio de lista aunque exista manual capturado.
-- [ ] **Step 4:** Pruebas específicas y pruebas SQL de precios existentes; commit `feat(portal): edición de precios por Finanzas`.
+- [x] **Step 1:** Probar precio positivo/nulo, manual con nota, retiro de manual y prohibición en canales mostrador; rol ajeno y fila inexistente no producen éxito falso.
+- [x] **Step 2:** Implementar escritura con sesión y retorno comprobado; no enviar columnas inmutables en updates.
+- [x] **Step 3:** Refrescar ficha/resumen y mostrar ausencia de precio de lista aunque exista manual capturado.
+- [x] **Step 4:** Pruebas específicas y pruebas SQL de precios existentes; commit `feat(portal): edición de precios por Finanzas`.
 
 **Terminado:** Se respetan separación de roles, precios migrados y bitácora existente.
 
@@ -232,10 +232,10 @@ La convención de renovación de sesión (middleware/proxy) y los archivos de co
 
 **Interfaces:** Catálogo buscable/filtrable con alta/edición por compras/admin, proveedores/categorías/unidad seleccionados; costo unitario generado por SQL; filtro sin uso y productos afectados incluyendo sub-recetas anidadas.
 
-- [ ] **Step 1:** Probar costo >= 0, presentación > 0, catálogos válidos y permisos; consumo indirecto cuenta como uso.
-- [ ] **Step 2:** Implementar paginación, formulario y desactivación/reactivación; confirmar desactivación con lista de impacto.
-- [ ] **Step 3:** Verificar recálculo SQL tras cambiar costo y mostrar errores conservando captura.
-- [ ] **Step 4:** Pruebas específicas + typecheck; commit `feat(portal): administración de insumos`.
+- [x] **Step 1:** Probar costo >= 0, presentación > 0, catálogos válidos y permisos; consumo indirecto cuenta como uso.
+- [x] **Step 2:** Implementar paginación, formulario y desactivación/reactivación; confirmar desactivación con lista de impacto.
+- [x] **Step 3:** Verificar recálculo SQL tras cambiar costo y mostrar errores conservando captura.
+- [x] **Step 4:** Pruebas específicas + typecheck; commit `feat(portal): administración de insumos`.
 
 **Terminado:** Compras administra insumos sin carga masiva; los demás roles consultan y el costo se recalcula en Postgres.
 
@@ -247,10 +247,10 @@ La convención de renovación de sesión (middleware/proxy) y los archivos de co
 
 **Interfaces:** Parámetros/canales/tamaños por finanzas/admin; proveedores y categorías de insumo por compras/admin; categorías de producto por operaciones/admin. Tres canales fijos, sin alta/baja; catálogos desactivables cuando el esquema lo permite.
 
-- [ ] **Step 1:** Probar rangos de IVA/margen/comisión, porcentajes UI ↔ fracciones SQL, envase, orden y permisos por sección.
-- [ ] **Step 2:** Implementar cambios y avisos; confirmar comisión App propia explícitamente, sin hacerlo solo al abrir formulario.
-- [ ] **Step 3:** Los tamaños solo se crean/editan: la tabla no tiene activo y no se añade desactivación ficticia. Relaciones previas con catálogos inactivos permanecen visibles.
-- [ ] **Step 4:** Pruebas específicas + suite SQL de cálculo; commit `feat(portal): configuración por área`.
+- [x] **Step 1:** Probar rangos de IVA/margen/comisión, porcentajes UI ↔ fracciones SQL, envase, orden y permisos por sección.
+- [x] **Step 2:** Implementar cambios y avisos; confirmar comisión App propia explícitamente, sin hacerlo solo al abrir formulario.
+- [x] **Step 3:** Los tamaños solo se crean/editan: la tabla no tiene activo y no se añade desactivación ficticia. Relaciones previas con catálogos inactivos permanecen visibles.
+- [x] **Step 4:** Pruebas específicas + suite SQL de cálculo; commit `feat(portal): configuración por área`.
 
 **Terminado:** Modificar configuración refresca valores oficiales sin guardar cálculos derivados.
 
@@ -263,10 +263,10 @@ La convención de renovación de sesión (middleware/proxy) y los archivos de co
 
 **Interfaces:** KPIs de productos activos y alertas enlazadas. Food cost promedio: media simple de filas producto/tamaño de Mostrador con precio, sin duplicar canales; avisar que no está ponderado por ventas. Conteos por producto distinto para falta de precio, margen bajo objetivo y pérdida en delivery. Historial por `bitacora.receta_id`, paginado.
 
-- [ ] **Step 1:** Probar varios tamaños/canales, nulos y estados para evitar doble conteo; comisión pendiente siempre visible.
-- [ ] **Step 2:** Implementar KPIs a partir de vistas y filtros claramente rotulados; no inferir alertas adicionales mediante fórmulas frontend.
-- [ ] **Step 3:** Mostrar historial anterior/nuevo/usuario/fecha; los cambios históricos del Excel sin receta_id no se atribuyen artificialmente a productos.
-- [ ] **Step 4:** Pruebas específicas + typecheck; commit `feat(portal): tablero e historial de recetas`.
+- [x] **Step 1:** Probar varios tamaños/canales, nulos y estados para evitar doble conteo; comisión pendiente siempre visible.
+- [x] **Step 2:** Implementar KPIs a partir de vistas y filtros claramente rotulados; no inferir alertas adicionales mediante fórmulas frontend.
+- [x] **Step 3:** Mostrar historial anterior/nuevo/usuario/fecha; los cambios históricos del Excel sin receta_id no se atribuyen artificialmente a productos.
+- [x] **Step 4:** Pruebas específicas + typecheck; commit `feat(portal): tablero e historial de recetas`.
 
 **Terminado:** KPIs tienen definición visible y las fichas muestran su auditoría sin adelantar la pantalla general del Plan 3.
 
@@ -278,12 +278,12 @@ La convención de renovación de sesión (middleware/proxy) y los archivos de co
 
 **Interfaces:** Instrucciones de inicio local, variables públicas, manejo de usuarios en Supabase y lista de validaciones pendientes contra servicio real.
 
-- [ ] **Step 1:** Aclarar roles del README y añadir SQL de primer admin para que lo ejecute el usuario con el ID/correo de su cuenta previamente creada.
-- [ ] **Step 2:** Ejecutar toda la suite (`npm test`), `npm run typecheck` y `npm run build`; verificar rutas y teclado en navegador con datos sintéticos de pruebas. Nunca habilitar un modo de pruebas que eluda Auth en producción.
-- [ ] **Step 3:** Revisar diff, permisos RPC, secretos, mensajes en español y consultas paginadas; comprobar que no se alteraron reporte ni importador.
-- [ ] **Step 4:** Documentar configuración Cloud a cargo del usuario: registro desactivado, URLs permitidas de callback y variables del portal. Si publica nuevas migraciones, indicar `npx supabase db push` para que él lo corra, sin ejecutarlo.
-- [ ] **Step 5:** Entregar guion de comprobación real: login de usuario creado, perfil inactivo, edición según rol, conflicto entre dos sesiones y rollback. Marcar estas comprobaciones como pendientes hasta recibir evidencia; PGlite no prueba Supabase Auth ni PostgREST ni todas las concurrencias reales.
-- [ ] **Step 6:** Commit `docs(portal): ejecución y verificación del Plan 2`; entregar cambios en `plan-2-portal`, sin merge.
+- [x] **Step 1:** Aclarar roles del README y añadir SQL de primer admin para que lo ejecute el usuario con el ID/correo de su cuenta previamente creada.
+- [x] **Step 2:** Ejecutar toda la suite (`npm test`), `npm run typecheck` y `npm run build`; verificar rutas y teclado en navegador con datos sintéticos de pruebas. Nunca habilitar un modo de pruebas que eluda Auth en producción.
+- [x] **Step 3:** Revisar diff, permisos RPC, secretos, mensajes en español y consultas paginadas; comprobar que no se alteraron reporte ni importador.
+- [x] **Step 4:** Documentar configuración Cloud a cargo del usuario: registro desactivado, URLs permitidas de callback y variables del portal. Si publica nuevas migraciones, indicar `npx supabase db push` para que él lo corra, sin ejecutarlo.
+- [x] **Step 5:** Entregar guion de comprobación real: login de usuario creado, perfil inactivo, edición según rol, conflicto entre dos sesiones y rollback. Marcar estas comprobaciones como pendientes hasta recibir evidencia; PGlite no prueba Supabase Auth ni PostgREST ni todas las concurrencias reales.
+- [x] **Step 6:** Commit `docs(portal): ejecución y verificación del Plan 2`; entregar cambios en `plan-2-portal`, sin merge.
 
 **Terminado:** Suite completa, tipos y build aprobados; limitaciones reales registradas y usuario puede revisar cada commit. La entrega local no se presenta como portal publicado ni validado contra Cloud.
 
@@ -304,7 +304,16 @@ La convención de renovación de sesión (middleware/proxy) y los archivos de co
 ## Puerta de aprobación
 
 - [x] Responder decisiones de framework, roles, usuarios, orden y alcance; incorporadas en este documento.
-- [ ] Usuario aprueba explícitamente el Plan 2.
-- [ ] Solo entonces crear `plan-2-portal` y comenzar Task 1.
+- [x] Usuario aprueba explícitamente el Plan 2.
+- [x] Crear `plan-2-portal` y ejecutar el trabajo aprobado sin merge a main.
 
-Hasta entonces, el único cambio autorizado y realizado es este documento de planificación.
+Implementación local completada en plan-2-portal. Las comprobaciones que requieren el proyecto real siguen pendientes en docs/portal/verificacion-plan-2.md; no se accedió a Supabase Cloud.
+
+
+## Ajustes de archivos durante la implementación
+
+- Los formularios de insumos y catálogos reutilizan components/portal/formulario-registro.tsx y lib/portal/configuracion.ts, con listas de campos y permisos por tabla; no se duplicaron formularios por catálogo.
+- Las fichas de producto y sub-receta comparten components/recetas/ficha.tsx, lista.tsx y editor-receta.tsx. Precios e historial tienen acciones separadas bajo app/(portal)/productos/.
+- Las pruebas se agrupan por comportamiento en dominio.test.ts, escrituras.test.ts, sesion.test.ts, invitacion.test.ts y componentes; la cobertura por tarea no depende de crear un archivo de prueba por función.
+- tests/portal/vista es un arnés visual separado con dobles y datos sintéticos. No añade rutas de acceso sin autenticación al portal.
+- Next.js generó AGENTS.md y CLAUDE.md con instrucciones para consultar su documentación local; se conservan como archivos de herramientas.
