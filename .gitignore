@@ -5,3 +5,6 @@ datos/*.xlsx
 !.env.example
 supabase/.temp/
 supabase/.branches/
+.next/
+*.tsbuildinfo
+next-env.d.ts

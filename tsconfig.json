@@ -7,7 +7,13 @@
     "noEmit": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
-    "types": ["node"]
+    "types": ["node"],
+    "jsx": "react-jsx",
+    "resolveJsonModule": true,
+    "incremental": true,
+    "plugins": [{ "name": "next" }],
+    "paths": { "@/*": ["./*"] }
   },
-  "include": ["scripts", "tests", "vitest.config.ts"]
+  "include": ["scripts", "tests", "lib", "components", "app", "proxy.ts", "next-env.d.ts", ".next/types/**/*.ts", ".next/dev/types/**/*.ts", "vitest.config.ts", "next.config.ts"],
+  "exclude": ["node_modules"]
 }
