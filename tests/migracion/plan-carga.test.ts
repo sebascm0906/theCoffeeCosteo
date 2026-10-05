@@ -50,8 +50,10 @@ describe('construirPlanCarga', () => {
   it('guarda como precio manual el precio Rappi del Excel que no sale de la fórmula', () => {
     // Matcha Latte: P = 70 → neutro 94, tope 87 → fórmula 87; el Excel trae 80.
     // Agua sola: P = 10 → fórmula 12 = Excel 12 → sin precio manual.
+    // Matcha Iced: trae Rappi 50 pero ningún precio de lista → no hay precio sobre el cual aplicar uno manual.
     expect(plan.preciosCanal).toEqual([{ productoId: receta('Matcha Latte').id, tamano: 'Chica', canal: 'Rappi', precio: 80 }]);
-    expect(plan.avisos).toContainEqual({ tipo: 'Precio Rappi manual', detalle: 'Matcha Latte (Chica): Excel 80, fórmula 87' });
+    expect(plan.avisos.filter((a) => a.tipo === 'Precio Rappi manual'))
+      .toEqual([{ tipo: 'Precio Rappi manual', detalle: 'Matcha Latte (Chica): Excel 80, fórmula 87' }]);
   });
 
   it('pasa el historial del Excel y los parámetros', () => {

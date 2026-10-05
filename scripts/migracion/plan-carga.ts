@@ -27,6 +27,7 @@ function catalogo(nombres: string[]): { id: string; nombre: string }[] {
   return [...new Set(nombres)].sort((a, b) => a.localeCompare(b, 'es')).map((nombre) => ({ id: randomUUID(), nombre }));
 }
 
+// Replica la fórmula de precio_calculado de v_resumen (migración 0007); solo sirve para detectar precios Rappi tecleados a mano en el Excel.
 /** Fórmula de la hoja Resumen: MIN(ROUND(P/(1−com) + env·(1+iva)/(1−com)), ROUNDDOWN(P·(1+markupMax))). */
 function precioRappiFormula(precio: number, par: LibroExcel['parametros']): number {
   const neutro = Math.round(precio / (1 - par.comisionRappi) + (par.envaseRappi * (1 + par.iva)) / (1 - par.comisionRappi));
@@ -133,8 +134,9 @@ export function construirPlanCarga(libro: LibroExcel): PlanCarga {
     if (p.precioRappi > 0) {
       // Mismo tamaño que usaba el Excel para Rappi; si su precio no sale de la fórmula, es un precio aprobado a mano.
       const tamano: Tamano = p.precioGrande > 0 ? 'Grande' : tamanosPorProducto.get(p.nombre)!.includes('Único') ? 'Único' : 'Chica';
-      const calculado = precioRappiFormula(tamano === 'Grande' ? p.precioGrande : p.precioChica, libro.parametros);
-      if (p.precioRappi !== calculado) {
+      const precioLista = tamano === 'Grande' ? p.precioGrande : p.precioChica;
+      const calculado = precioLista > 0 ? precioRappiFormula(precioLista, libro.parametros) : null;
+      if (calculado !== null && p.precioRappi !== calculado) {
         preciosCanal.push({ productoId: id, tamano, canal: 'Rappi', precio: p.precioRappi });
         avisos.push({ tipo: 'Precio Rappi manual', detalle: `${p.nombre} (${tamano}): Excel ${p.precioRappi}, fórmula ${calculado}` });
       }

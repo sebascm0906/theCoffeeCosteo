@@ -1,3 +1,7 @@
+-- Los objetos nuevos empiezan cerrados para authenticated (Supabase Cloud le da ALL por defecto); cada objeto concede lo suyo.
+alter default privileges in schema public revoke all on tables from authenticated;
+alter default privileges in schema public revoke all on sequences from authenticated;
+
 -- Precio de canal capturado a mano (decisiones de precio aprobadas que no salen de la fórmula).
 create table precio_canal_manual (
   producto_id uuid not null,
@@ -11,12 +15,22 @@ create table precio_canal_manual (
 
 alter table precio_canal_manual enable row level security;
 create policy lectura on precio_canal_manual for select to authenticated using (true);
-create policy alta on precio_canal_manual for insert to authenticated with check (tiene_rol('finanzas', 'admin'));
+create policy alta on precio_canal_manual for insert to authenticated with check (public.tiene_rol('finanzas', 'admin'));
 create policy cambio on precio_canal_manual for update to authenticated
-  using (tiene_rol('finanzas', 'admin')) with check (tiene_rol('finanzas', 'admin'));
-create policy baja on precio_canal_manual for delete to authenticated using (tiene_rol('finanzas', 'admin'));
-revoke all on precio_canal_manual from anon;
+  using (public.tiene_rol('finanzas', 'admin')) with check (public.tiene_rol('finanzas', 'admin'));
+create policy baja on precio_canal_manual for delete to authenticated using (public.tiene_rol('finanzas', 'admin'));
+revoke all on precio_canal_manual from anon, authenticated;
 grant select, insert, update, delete on precio_canal_manual to authenticated;
+
+create function vigilar_precio_canal_manual() returns trigger language plpgsql as $$
+begin
+  if (new.producto_id, new.tamano_id, new.canal_id) is distinct from (old.producto_id, old.tamano_id, old.canal_id) then
+    raise exception 'No se puede cambiar el producto, el tamaño o el canal de un precio manual; elimínalo y créalo de nuevo';
+  end if;
+  return new;
+end $$;
+create trigger precio_canal_manual_vigilar before update on precio_canal_manual
+  for each row execute function vigilar_precio_canal_manual();
 
 -- Misma función de bitácora, con receta y registro para precio_canal_manual.
 create or replace function registrar_bitacora() returns trigger
@@ -137,5 +151,5 @@ select
 from v_resumen
 group by producto_id, producto, categoria, canal_id, canal, canal_orden;
 
-revoke all on v_resumen, v_alerta_producto_canal from anon;
+revoke all on v_resumen, v_alerta_producto_canal from anon, authenticated;
 grant select on v_resumen, v_alerta_producto_canal to authenticated;

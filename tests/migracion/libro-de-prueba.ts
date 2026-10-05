@@ -17,7 +17,7 @@ export const libroDePrueba = (): LibroExcel => ({
   ],
   productos: [
     { fila: 5, categoria: 'BEBIDAS CALIENTES', nombre: 'Matcha Latte', costoChica: 6.632, costoGrande: 7.784, precioChica: 70, precioGrande: 0, precioRappi: 80, margenRappi: 0, alerta: '' },
-    { fila: 6, categoria: 'SANDWICHES', nombre: 'Matcha Iced', costoChica: 4.632, costoGrande: 5.784, precioChica: 0, precioGrande: 0, precioRappi: 0, margenRappi: 0, alerta: 'Falta precio de lista' },
+    { fila: 6, categoria: 'SANDWICHES', nombre: 'Matcha Iced', costoChica: 4.632, costoGrande: 5.784, precioChica: 0, precioGrande: 0, precioRappi: 50, margenRappi: 0, alerta: 'Falta precio de lista' },
     { fila: 7, categoria: 'Sandwiches', nombre: 'Agua sola', costoChica: 0, costoGrande: 0, precioChica: 10, precioGrande: 0, precioRappi: 12, margenRappi: 0, alerta: '' },
   ],
   cambios: [{ hoja: 'Correcciones', seccion: 'Correcciones', campo: 'Matcha Latte · CH · MATCHA', anterior: '3.5', nuevo: '3.86', nota: 'gramaje ajustado' }],

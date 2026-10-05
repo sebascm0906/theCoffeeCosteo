@@ -72,6 +72,25 @@ describe('precio de canal manual', () => {
     expect(borrado.rows).toHaveLength(0);
   });
 
+  it('nadie con sesión puede vaciarla con truncate (saltaría RLS y bitácora)', async () => {
+    const finanzas = await crearUsuario(db, 'finanzas');
+    await expect(comoUsuario(db, finanzas, () => db.query('truncate precio_canal_manual'))).rejects.toThrow(/permission denied/);
+  });
+
+  it('no se puede cambiar el producto, el tamaño o el canal de un precio manual', async () => {
+    const p = await producto();
+    const otro = await producto();
+    await fijar(p, 75);
+    const appPropia = (await db.query<{ id: string }>(`select id from canales where nombre = 'App propia'`)).rows[0].id;
+    const mensaje = /No se puede cambiar el producto, el tamaño o el canal de un precio manual/;
+    await expect(db.query('update precio_canal_manual set canal_id = $1 where producto_id = $2', [appPropia, p])).rejects.toThrow(mensaje);
+    await expect(db.query('update precio_canal_manual set producto_id = $1 where producto_id = $2', [otro, p])).rejects.toThrow(mensaje);
+    const finanzas = await crearUsuario(db, 'finanzas');
+    await expect(comoUsuario(db, finanzas, () =>
+      db.query('update precio_canal_manual set canal_id = $1 where producto_id = $2', [appPropia, p]))).rejects.toThrow(mensaje);
+    expect(num((await fila(p)).precio_canal)).toBe(75);
+  });
+
   it('queda en la bitácora ligado al producto', async () => {
     const p = await producto();
     const finanzas = await crearUsuario(db, 'finanzas');
