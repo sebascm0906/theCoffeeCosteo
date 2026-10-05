@@ -14,6 +14,7 @@ export interface PlanCarga {
   insumos: { id: string; nombre: string; proveedorId: string; categoriaId: string; costoPaquete: number; presentacion: number; unidad: Unidad }[];
   recetas: { id: string; nombre: string; tipo: 'producto' | 'subreceta'; categoriaId: string | null; rendimiento: number | null; unidadRendimiento: Unidad | null }[];
   productoTamanos: { productoId: string; tamano: Tamano; precioLista: number | null }[];
+  preciosCanal: { productoId: string; tamano: Tamano; canal: string; precio: number }[];
   lineas: { id: string; recetaId: string; insumoId: string | null; subrecetaId: string | null; orden: number }[];
   cantidades: { lineaId: string; tamano: Tamano | null; cantidad: number }[];
   historial: { tabla: string; campo: string; anterior: string | null; nuevo: string | null; nota: string | null }[];
@@ -24,6 +25,13 @@ export interface PlanCarga {
 
 function catalogo(nombres: string[]): { id: string; nombre: string }[] {
   return [...new Set(nombres)].sort((a, b) => a.localeCompare(b, 'es')).map((nombre) => ({ id: randomUUID(), nombre }));
+}
+
+/** Fórmula de la hoja Resumen: MIN(ROUND(P/(1−com) + env·(1+iva)/(1−com)), ROUNDDOWN(P·(1+markupMax))). */
+function precioRappiFormula(precio: number, par: LibroExcel['parametros']): number {
+  const neutro = Math.round(precio / (1 - par.comisionRappi) + (par.envaseRappi * (1 + par.iva)) / (1 - par.comisionRappi));
+  const tope = Math.floor(precio * (1 + par.markupMaxRappi));
+  return Math.min(neutro, tope);
 }
 
 export function construirPlanCarga(libro: LibroExcel): PlanCarga {
@@ -92,6 +100,7 @@ export function construirPlanCarga(libro: LibroExcel): PlanCarga {
 
   const recetas: PlanCarga['recetas'] = [];
   const productoTamanos: PlanCarga['productoTamanos'] = [];
+  const preciosCanal: PlanCarga['preciosCanal'] = [];
   const lineas: PlanCarga['lineas'] = [];
   const cantidades: PlanCarga['cantidades'] = [];
   const insumoPorNombre = new Map(insumos.map((i) => [i.nombre, i]));
@@ -121,6 +130,15 @@ export function construirPlanCarga(libro: LibroExcel): PlanCarga {
       const precio = t === 'Grande' ? p.precioGrande : p.precioChica;
       productoTamanos.push({ productoId: id, tamano: t, precioLista: precio > 0 ? precio : null });
     }
+    if (p.precioRappi > 0) {
+      // Mismo tamaño que usaba el Excel para Rappi; si su precio no sale de la fórmula, es un precio aprobado a mano.
+      const tamano: Tamano = p.precioGrande > 0 ? 'Grande' : tamanosPorProducto.get(p.nombre)!.includes('Único') ? 'Único' : 'Chica';
+      const calculado = precioRappiFormula(tamano === 'Grande' ? p.precioGrande : p.precioChica, libro.parametros);
+      if (p.precioRappi !== calculado) {
+        preciosCanal.push({ productoId: id, tamano, canal: 'Rappi', precio: p.precioRappi });
+        avisos.push({ tipo: 'Precio Rappi manual', detalle: `${p.nombre} (${tamano}): Excel ${p.precioRappi}, fórmula ${calculado}` });
+      }
+    }
     let orden = 0;
     const usosEmitidos = new Set<string>();
     for (const l of lineasLimpias.filter((x) => x.producto === p.nombre)) {
@@ -142,7 +160,7 @@ export function construirPlanCarga(libro: LibroExcel): PlanCarga {
   return {
     parametros: { iva: libro.parametros.iva, margenObjetivo: libro.parametros.margenObjetivo },
     rappi: { comision: libro.parametros.comisionRappi, envase: libro.parametros.envaseRappi, markupMax: libro.parametros.markupMaxRappi },
-    proveedores, categoriasInsumo, categoriasProducto, insumos, recetas, productoTamanos, lineas, cantidades,
+    proveedores, categoriasInsumo, categoriasProducto, insumos, recetas, productoTamanos, preciosCanal, lineas, cantidades,
     historial: libro.cambios.map((c) => ({
       tabla: c.hoja === 'Auditoria' ? 'excel_auditoria' : 'excel_correcciones',
       campo: c.campo, anterior: c.anterior, nuevo: c.nuevo, nota: c.nota,

@@ -47,6 +47,13 @@ describe('construirPlanCarga', () => {
     expect(plan.insumos.find((i) => i.nombre === 'VASO')!.unidad).toBe('pza');
   });
 
+  it('guarda como precio manual el precio Rappi del Excel que no sale de la fórmula', () => {
+    // Matcha Latte: P = 70 → neutro 94, tope 87 → fórmula 87; el Excel trae 80.
+    // Agua sola: P = 10 → fórmula 12 = Excel 12 → sin precio manual.
+    expect(plan.preciosCanal).toEqual([{ productoId: receta('Matcha Latte').id, tamano: 'Chica', canal: 'Rappi', precio: 80 }]);
+    expect(plan.avisos).toContainEqual({ tipo: 'Precio Rappi manual', detalle: 'Matcha Latte (Chica): Excel 80, fórmula 87' });
+  });
+
   it('pasa el historial del Excel y los parámetros', () => {
     expect(plan.historial).toEqual([{ tabla: 'excel_correcciones', campo: 'Matcha Latte · CH · MATCHA', anterior: '3.5', nuevo: '3.86', nota: 'gramaje ajustado' }]);
     expect(plan.rappi).toEqual({ comision: 0.18, envase: 6.14, markupMax: 0.25 });

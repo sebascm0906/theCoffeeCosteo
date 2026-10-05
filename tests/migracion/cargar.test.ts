@@ -18,6 +18,17 @@ describe('cargarPlan', () => {
     expect(costo('Matcha Iced', 'Chica')).toBeCloseTo(4.632, 2);
   });
 
+  it('carga los precios Rappi manuales y v_resumen los usa', async () => {
+    const db = await crearDbLocal();
+    await cargarPlan(db, construirPlanCarga(libroDePrueba()));
+    const r = await db.query<{ producto: string; tamano: string; precio_calculado: string; precio_canal: string }>(
+      `select producto, tamano, precio_calculado, precio_canal from v_resumen where canal = 'Rappi' and precio_lista is not null order by producto`);
+    expect(r.rows.map((x) => [x.producto, x.tamano, Number(x.precio_calculado), Number(x.precio_canal)])).toEqual([
+      ['Agua sola', 'Único', 12, 12],
+      ['Matcha Latte', 'Chica', 87, 80],
+    ]);
+  });
+
   it('no deja bitácora de portal, sí el historial del Excel con origen migracion', async () => {
     const db = await crearDbLocal();
     await cargarPlan(db, construirPlanCarga(libroDePrueba()));

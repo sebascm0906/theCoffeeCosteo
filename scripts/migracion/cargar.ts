@@ -38,6 +38,14 @@ export async function cargarPlan(db: Ejecutor, plan: PlanCarga): Promise<void> {
       await db.query('insert into producto_tamanos (producto_id, tamano_id, precio_lista) values ($1, $2, $3)',
         [t.productoId, idTamano.get(t.tamano), t.precioLista]);
     }
+    const canales = await db.query<{ id: string; nombre: string }>('select id, nombre from canales');
+    const idCanal = new Map(canales.rows.map((c) => [c.nombre, c.id]));
+    for (const m of plan.preciosCanal) {
+      const canalId = idCanal.get(m.canal);
+      if (!canalId) throw new Error(`No existe el canal ${m.canal}`);
+      await db.query('insert into precio_canal_manual (producto_id, tamano_id, canal_id, precio) values ($1, $2, $3, $4)',
+        [m.productoId, idTamano.get(m.tamano), canalId, m.precio]);
+    }
     for (const l of plan.lineas) {
       await db.query('insert into receta_lineas (id, receta_id, insumo_id, subreceta_id, orden) values ($1, $2, $3, $4, $5)',
         [l.id, l.recetaId, l.insumoId, l.subrecetaId, l.orden]);
