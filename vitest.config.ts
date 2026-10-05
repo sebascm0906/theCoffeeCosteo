@@ -6,7 +6,15 @@ export default defineConfig({
   test: {
     projects: [
       { extends: true, test: { name: 'node', include: ['tests/**/*.test.ts'], environment: 'node' } },
-      { extends: true, test: { name: 'dom', include: ['tests/**/*.test.tsx'], environment: 'jsdom', setupFiles: ['tests/portal/setup.ts'] } },
+      {
+        extends: true,
+        test: {
+          name: 'dom',
+          include: ['tests/**/*.test.tsx'],
+          environment: 'jsdom',
+          setupFiles: ['tests/portal/setup.ts'],
+        },
+      },
     ],
     testTimeout: 60_000,
     hookTimeout: 60_000,
