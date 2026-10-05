@@ -6,7 +6,7 @@ export default async function PortalLayout({ children }: { children: React.React
   const { perfil } = await sesion();
   return (
     <div className="min-h-screen lg:grid lg:grid-cols-[230px_1fr]">
-      <aside className="bg-[#213c30] text-white p-6 lg:min-h-screen">
+      <aside className="bg-primary text-white p-6 lg:min-h-screen">
         <p className="tracking-[.25em] text-xs uppercase">The Coffee</p>
         <p className="text-xl mt-2 mb-8">Costeos</p>
         <nav aria-label="Principal" className="flex flex-wrap lg:flex-col gap-4">
@@ -23,7 +23,7 @@ export default async function PortalLayout({ children }: { children: React.React
             </Link>
           ))}
         </nav>
-        <div className="mt-12 text-sm text-[#c2d6c7]">
+        <div className="mt-12 text-sm text-neutral-300">
           <p>{perfil.nombre}</p>
           <p className="capitalize">{perfil.rol}</p>
           <form action={salir}>

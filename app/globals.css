@@ -1,17 +1,17 @@
 @import 'tailwindcss';
 @theme inline {
-  --color-primary: #245b47;
+  --color-primary: #000000;
   --color-primary-foreground: #fff;
-  --color-background: #f6f5f0;
-  --color-foreground: #242923;
-  --color-border: #dadfd6;
-  --color-muted: #eceee7;
-  --color-muted-foreground: #637064;
+  --color-background: #ffffff;
+  --color-foreground: #171717;
+  --color-border: #dedede;
+  --color-muted: #f3f3f3;
+  --color-muted-foreground: #666666;
   --color-popover: #fff;
-  --color-popover-foreground: #242923;
-  --color-accent: #e6eee8;
-  --color-accent-foreground: #245b47;
-  --color-ring: #245b47;
+  --color-popover-foreground: #171717;
+  --color-accent: #ededed;
+  --color-accent-foreground: #000000;
+  --color-ring: #000000;
   --radius-md: 0.5rem;
 }
 @layer base {
@@ -19,18 +19,18 @@
     min-width: 0;
   }
   * {
-    border-color: #dadfd6;
+    border-color: #dedede;
   }
   body {
-    background: #f6f5f0;
-    color: #242923;
+    background: #ffffff;
+    color: #171717;
     font-family: Arial, Helvetica, sans-serif;
     margin: 0;
   }
   input,
   select,
   textarea {
-    border: 1px solid #c5cec3;
+    border: 1px solid #bfbfbf;
     border-radius: 6px;
     padding: 0.65rem;
     background: white;
@@ -56,13 +56,13 @@
     text-underline-offset: 4px;
   }
   :focus-visible {
-    outline: 3px solid #579579;
+    outline: 3px solid #000000;
     outline-offset: 3px;
   }
 }
 @layer components {
   .panel {
-    border: 1px solid #dce1d7;
+    border: 1px solid #dedede;
     border-radius: 12px;
     background: white;
     padding: 1.5rem;
@@ -85,15 +85,15 @@
     font-size: 0.875rem;
   }
   .tabla th {
-    background: #f1f3ed;
-    color: #62715f;
+    background: #f5f5f5;
+    color: #555555;
     text-align: left;
     font-weight: 600;
   }
   .tabla td,
   .tabla th {
     padding: 0.8rem;
-    border-bottom: 1px solid #e6e9e2;
+    border-bottom: 1px solid #e5e5e5;
   }
   .numero {
     font-variant-numeric: tabular-nums;
