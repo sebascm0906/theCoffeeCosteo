@@ -6,7 +6,7 @@ create table perfiles (
 );
 
 create function rol_actual() returns text
-language sql stable security definer set search_path = public as $$
+language sql stable security definer set search_path = public, pg_temp as $$
   select rol from public.perfiles where user_id = auth.uid() and activo
 $$;
 
@@ -33,9 +33,13 @@ create index bitacora_receta on bitacora (receta_id);
 create index bitacora_fecha on bitacora (fecha desc);
 
 create function registrar_bitacora() returns trigger
-language plpgsql security definer set search_path = public as $$
+language plpgsql security definer set search_path = public, pg_temp as $$
 declare
-  v_origen text := coalesce(nullif(current_setting('app.origen', true), ''), 'portal');
+  v_origen text := case current_setting('app.origen', true)
+    when 'carga_masiva' then 'carga_masiva'
+    when 'migracion' then case when auth.uid() is null then 'migracion' else 'portal' end
+    else 'portal'
+  end;
   v_viejo jsonb := case when tg_op in ('UPDATE', 'DELETE') then to_jsonb(old) end;
   v_nuevo jsonb := case when tg_op in ('UPDATE', 'INSERT') then to_jsonb(new) end;
   v_fila jsonb := coalesce(v_nuevo, v_viejo);
@@ -52,18 +56,18 @@ begin
     when 'recetas' then (v_fila ->> 'id')::uuid
     when 'producto_tamanos' then (v_fila ->> 'producto_id')::uuid
     when 'receta_lineas' then (v_fila ->> 'receta_id')::uuid
-    when 'linea_cantidades' then (select receta_id from receta_lineas where id = (v_fila ->> 'linea_id')::uuid)
+    when 'linea_cantidades' then (select receta_id from public.receta_lineas where id = (v_fila ->> 'linea_id')::uuid)
   end;
   if tg_op = 'UPDATE' then
     for v_campo in select jsonb_object_keys(v_nuevo) loop
       continue when v_campo = any (array['updated_at', 'updated_by', 'version', 'costo_unitario']);
       if (v_viejo -> v_campo) is distinct from (v_nuevo -> v_campo) then
-        insert into bitacora (tabla, registro_id, receta_id, campo, valor_anterior, valor_nuevo, usuario_id, origen)
+        insert into public.bitacora (tabla, registro_id, receta_id, campo, valor_anterior, valor_nuevo, usuario_id, origen)
         values (tg_table_name, v_registro, v_receta, v_campo, v_viejo ->> v_campo, v_nuevo ->> v_campo, auth.uid(), v_origen);
       end if;
     end loop;
   else
-    insert into bitacora (tabla, registro_id, receta_id, campo, valor_anterior, valor_nuevo, usuario_id, origen)
+    insert into public.bitacora (tabla, registro_id, receta_id, campo, valor_anterior, valor_nuevo, usuario_id, origen)
     values (tg_table_name, v_registro, v_receta, '*', v_viejo::text, v_nuevo::text, auth.uid(), v_origen);
   end if;
   return null;

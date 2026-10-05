@@ -51,6 +51,23 @@ describe('bitácora', () => {
     expect(filas.map((f) => f.origen)).toEqual(['carga_masiva']);
   });
 
+  it('con sesión de usuario, origen migracion se trata como portal (sí registra)', async () => {
+    const usuario = await crearUsuario(db, 'compras');
+    const insumo = await crearInsumo(db, { nombre: 'DESVIO', costoPaquete: 1, presentacion: 1 });
+    await db.query(`select set_config('request.jwt.claim.sub', $1, false)`, [usuario]);
+    await db.exec(`begin; select set_config('app.origen', 'migracion', true); update insumos set costo_paquete = 2 where nombre = 'DESVIO'; commit;`);
+    await db.query(`select set_config('request.jwt.claim.sub', '', false)`);
+    const filas = (await bitacoraDe(insumo)).filter((f) => f.campo === 'costo_paquete');
+    expect(filas.map((f) => f.origen)).toEqual(['portal']);
+  });
+
+  it('un origen desconocido se registra como portal y no aborta la escritura', async () => {
+    const insumo = await crearInsumo(db, { nombre: 'ORIGEN RARO', costoPaquete: 1, presentacion: 1 });
+    await db.exec(`begin; select set_config('app.origen', 'loquesea', true); update insumos set costo_paquete = 2 where nombre = 'ORIGEN RARO'; commit;`);
+    const filas = (await bitacoraDe(insumo)).filter((f) => f.campo === 'costo_paquete');
+    expect(filas.map((f) => f.origen)).toEqual(['portal']);
+  });
+
   it('ignora columnas técnicas (updated_at, version, costo_unitario)', async () => {
     const insumo = await crearInsumo(db, { nombre: 'TECNICO', costoPaquete: 1, presentacion: 1 });
     await db.query('update insumos set costo_paquete = 5 where id = $1', [insumo]);
