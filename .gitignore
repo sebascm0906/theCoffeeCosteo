@@ -2,5 +2,6 @@ node_modules/
 datos/*.xlsx
 .env
 .env.*
+!.env.example
 supabase/.temp/
 supabase/.branches/
