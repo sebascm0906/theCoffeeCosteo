@@ -5,6 +5,10 @@ grant insert, update on parametros, canales, tamanos, proveedores, categorias_in
   insumos, recetas, producto_tamanos, receta_lineas, linea_cantidades, perfiles to authenticated;
 grant delete on producto_tamanos, receta_lineas, linea_cantidades to authenticated;
 
+alter default privileges in schema public revoke all on tables from anon;
+alter default privileges in schema public revoke all on sequences from anon;
+alter default privileges in schema public revoke all on functions from anon;
+
 do $$
 declare t text;
 begin
@@ -48,6 +52,9 @@ create policy cambio on producto_tamanos for update to authenticated
 
 create function vigilar_producto_tamanos() returns trigger language plpgsql as $$
 begin
+  if tg_op = 'UPDATE' and (new.producto_id, new.tamano_id) is distinct from (old.producto_id, old.tamano_id) then
+    raise exception 'No se puede cambiar el producto o el tamaño de un registro; elimínalo y créalo de nuevo';
+  end if;
   if current_user <> 'authenticated' then
     return new;
   end if;
@@ -58,9 +65,6 @@ begin
   else
     if new.precio_lista is distinct from old.precio_lista and not tiene_rol('finanzas', 'admin') then
       raise exception 'Solo Finanzas puede capturar precios de lista';
-    end if;
-    if (new.producto_id, new.tamano_id) is distinct from (old.producto_id, old.tamano_id) and not tiene_rol('operaciones', 'admin') then
-      raise exception 'Solo Operaciones puede cambiar los tamaños de un producto';
     end if;
   end if;
   return new;

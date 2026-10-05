@@ -55,7 +55,7 @@ describe('permisos', () => {
   });
 
   it('solo Operaciones y Admin arman recetas', async () => {
-    await expect(comoUsuario(db, compras, () => agregarLinea(db, producto, { insumoId: insumo, cantidades: { Chica: 1 } }))).rejects.toThrow();
+    await expect(comoUsuario(db, compras, () => agregarLinea(db, producto, { insumoId: insumo, cantidades: { Chica: 1 } }))).rejects.toThrow(/row-level security/);
     const linea = await comoUsuario(db, operaciones, () => agregarLinea(db, producto, { insumoId: insumo, cantidades: { Chica: 18 } }));
     expect(linea).toBeTruthy();
   });
@@ -72,8 +72,14 @@ describe('permisos', () => {
     const alta = (uid: string, precio: number | null) => comoUsuario(db, uid, () =>
       db.query('insert into producto_tamanos (producto_id, tamano_id, precio_lista) values ($1, $2, $3)', [producto, grande, precio]));
     await expect(alta(operaciones, 80)).rejects.toThrow(/Solo Finanzas/);
-    await expect(alta(finanzas, null)).rejects.toThrow();
+    await expect(alta(finanzas, null)).rejects.toThrow(/row-level security/);
     await alta(operaciones, null);
+  });
+
+  it('nadie puede mover un precio a otro producto o tamaño', async () => {
+    const mover = () => db.query('update producto_tamanos set tamano_id = $3 where producto_id = $1 and tamano_id = $2', [producto, chica, grande]);
+    await expect(comoUsuario(db, operaciones, mover)).rejects.toThrow(/No se puede cambiar el producto o el tamaño/);
+    await expect(mover()).rejects.toThrow(/No se puede cambiar el producto o el tamaño/);
   });
 
   it('solo Finanzas y Admin cambian parámetros y canales', async () => {
