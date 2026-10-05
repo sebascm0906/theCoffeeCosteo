@@ -43,7 +43,7 @@ supabase/migrations/   esquema, vistas, triggers, RLS
 app/                   pantallas
 lib/                   cliente Supabase, tipos generados, utilidades Excel
 scripts/migracion/     importador + reporte de conciliación
-tests/                 pgTAP (SQL) + Playwright (e2e)
+tests/                 Vitest + PGlite (SQL, sin Docker) + Playwright (e2e)
 ```
 
 El número oficial siempre sale de las vistas de Postgres. El editor de recetas puede mostrar un costo preliminar calculado en el cliente mientras se edita; al guardar se reemplaza por el de la base.
@@ -160,7 +160,7 @@ Se importan tal cual: los 50 insumos sin uso (activos) y los 55 productos sin pr
 ## 9. Pruebas
 
 1. **Paridad con Excel:** prueba automática que compara los 154 productos (costo, margen, precio Rappi, alerta) contra los valores del Excel.
-2. **pgTAP:** fórmulas de cada vista, sub-recetas anidadas, bloqueo de ciclos, triggers de bitácora, RLS por rol.
+2. **Pruebas SQL (Vitest + PGlite, Postgres en proceso, sin Docker):** fórmulas de cada vista, sub-recetas anidadas, bloqueo de ciclos, triggers de bitácora, RLS por rol.
 3. **Playwright e2e:** Operaciones arma una receta con dropdowns; Compras hace carga masiva y ve impacto; Finanzas cambia IVA y todo se recalcula.
 
 ## 10. Fuera de alcance (v1)
