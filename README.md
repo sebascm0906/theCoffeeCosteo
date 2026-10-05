@@ -34,6 +34,8 @@ Solo se aplica si la conciliación cuadra al centavo y la base de Supabase está
 El reporte (`datos/reporte-migracion.xlsx`) lista las equivalencias de categorías, las sub-recetas propuestas, los mixes sin agrupar, los avisos y la conciliación de costos. Entre los avisos aparece "Precio Rappi manual": precios de Rappi capturados a mano en el Excel, que se conservan como precio manual por canal.
 
 ## Publicar el esquema
+Antes de publicar: en Supabase → Authentication → Providers/Sign In, desactivar "Allow new users to sign up" (el portal es solo por invitación).
+
 ```bash
 npx supabase login
 npx supabase link --project-ref <ref>

@@ -26,11 +26,31 @@ const cambiarCosto = (uid: string) =>
   comoUsuario(db, uid, () => db.query('update insumos set costo_paquete = costo_paquete + 1 where id = $1 returning id', [insumo]));
 
 describe('permisos', () => {
-  it('todos los usuarios con sesión pueden leer tablas y vistas', async () => {
-    for (const uid of [compras, operaciones, finanzas, sinPerfil]) {
+  it('todos los usuarios con perfil activo pueden leer tablas y vistas', async () => {
+    for (const uid of [compras, operaciones, finanzas, admin]) {
       const r = await comoUsuario(db, uid, () => db.query('select count(*)::int as n from v_resumen'));
       expect(num((r.rows[0] as { n: number }).n)).toBeGreaterThan(0);
     }
+  });
+
+  const contar = (uid: string, tabla: 'insumos' | 'v_resumen') =>
+    comoUsuario(db, uid, async () => num((await db.query<{ n: number }>(`select count(*)::int as n from ${tabla}`)).rows[0].n));
+
+  it('un usuario con sesión pero sin perfil no lee nada', async () => {
+    expect(await contar(sinPerfil, 'insumos')).toBe(0);
+    expect(await contar(sinPerfil, 'v_resumen')).toBe(0);
+  });
+
+  it('un usuario con perfil inactivo no lee nada; uno activo sí', async () => {
+    const inactivo = await crearUsuario(db, 'compras');
+    await db.query('update perfiles set activo = false where user_id = $1', [inactivo]);
+    expect(await contar(inactivo, 'insumos')).toBe(0);
+    expect(await contar(inactivo, 'v_resumen')).toBe(0);
+    expect(await contar(compras, 'insumos')).toBeGreaterThan(0);
+  });
+
+  it('authenticated no puede usar las secuencias directamente', async () => {
+    await expect(comoUsuario(db, admin, () => db.query(`select nextval('bitacora_id_seq')`))).rejects.toThrow(/permission denied/);
   });
 
   it('anon no puede leer nada', async () => {

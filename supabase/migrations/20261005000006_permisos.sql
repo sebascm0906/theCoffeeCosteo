@@ -1,5 +1,6 @@
 revoke all on all tables in schema public from anon;
 revoke all on all tables in schema public from authenticated;
+revoke all on all sequences in schema public from anon, authenticated;
 grant select on all tables in schema public to authenticated;
 grant insert, update on parametros, canales, tamanos, proveedores, categorias_insumo, categorias_producto,
   insumos, recetas, producto_tamanos, receta_lineas, linea_cantidades, perfiles to authenticated;
@@ -15,7 +16,7 @@ begin
   foreach t in array array['parametros', 'canales', 'tamanos', 'proveedores', 'categorias_insumo', 'categorias_producto',
                            'insumos', 'recetas', 'producto_tamanos', 'receta_lineas', 'linea_cantidades', 'perfiles', 'bitacora'] loop
     execute format('alter table %I enable row level security', t);
-    execute format('create policy lectura on %I for select to authenticated using (true)', t);
+    execute format('create policy lectura on %I for select to authenticated using (public.rol_actual() is not null)', t);
   end loop;
 end $$;
 

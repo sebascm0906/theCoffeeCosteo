@@ -44,11 +44,11 @@ async function main() {
   try {
     const remoto: Ejecutor = { query: (sql, params) => cliente.query(sql, params as unknown[]) as never };
     console.log('3/3 Cargando en Supabase…');
-    await cargarPlan(remoto, plan);
-    const remota = await conciliar(remoto, libro);
-    const fallasRemotas = remota.filter((c) => !c.ok);
-    console.log(fallasRemotas.length === 0 ? 'Listo: Supabase cuadra con el Excel.' : `ATENCIÓN: ${fallasRemotas.length} diferencias en Supabase.`);
-    if (fallasRemotas.length > 0) process.exit(1);
+    await cargarPlan(remoto, plan, async (tx) => {
+      const n = (await conciliar(tx, libro)).filter((c) => !c.ok).length;
+      if (n > 0) throw new Error(`La conciliación en Supabase no cuadra (${n} diferencias); no se aplicó nada`);
+    });
+    console.log('Listo: Supabase cuadra con el Excel.');
   } finally {
     await cliente.end();
   }

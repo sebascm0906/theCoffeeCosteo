@@ -14,7 +14,7 @@ create table precio_canal_manual (
 );
 
 alter table precio_canal_manual enable row level security;
-create policy lectura on precio_canal_manual for select to authenticated using (true);
+create policy lectura on precio_canal_manual for select to authenticated using (public.rol_actual() is not null);
 create policy alta on precio_canal_manual for insert to authenticated with check (public.tiene_rol('finanzas', 'admin'));
 create policy cambio on precio_canal_manual for update to authenticated
   using (public.tiene_rol('finanzas', 'admin')) with check (public.tiene_rol('finanzas', 'admin'));
@@ -24,12 +24,16 @@ grant select, insert, update, delete on precio_canal_manual to authenticated;
 
 create function vigilar_precio_canal_manual() returns trigger language plpgsql as $$
 begin
-  if (new.producto_id, new.tamano_id, new.canal_id) is distinct from (old.producto_id, old.tamano_id, old.canal_id) then
+  if tg_op = 'UPDATE'
+     and (new.producto_id, new.tamano_id, new.canal_id) is distinct from (old.producto_id, old.tamano_id, old.canal_id) then
     raise exception 'No se puede cambiar el producto, el tamaño o el canal de un precio manual; elimínalo y créalo de nuevo';
+  end if;
+  if (select regla_precio from canales where id = new.canal_id) <> 'castigado' then
+    raise exception 'Solo los canales con precio castigado aceptan precio manual';
   end if;
   return new;
 end $$;
-create trigger precio_canal_manual_vigilar before update on precio_canal_manual
+create trigger precio_canal_manual_vigilar before insert or update on precio_canal_manual
   for each row execute function vigilar_precio_canal_manual();
 
 -- Misma función de bitácora, con receta y registro para precio_canal_manual.

@@ -61,6 +61,9 @@ declare
   v_tipo text;
   v_ciclo boolean;
 begin
+  if tg_op = 'UPDATE' and new.receta_id is distinct from old.receta_id then
+    raise exception 'No se puede mover una línea a otra receta; elimínala y créala de nuevo';
+  end if;
   if new.subreceta_id is null then
     return new;
   end if;
@@ -68,6 +71,8 @@ begin
   if v_tipo is distinct from 'subreceta' then
     raise exception 'Solo se pueden usar sub-recetas como componente';
   end if;
+  -- Serializa la revisión de ciclos: dos ediciones concurrentes no pueden crear un ciclo entre ambas.
+  perform pg_advisory_xact_lock(hashtext('receta_lineas_ciclo'));
   with recursive contenidas (id) as (
     select new.subreceta_id
     union

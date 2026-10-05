@@ -91,6 +91,13 @@ describe('precio de canal manual', () => {
     expect(num((await fila(p)).precio_canal)).toBe(75);
   });
 
+  it('solo los canales con precio castigado aceptan precio manual', async () => {
+    const p = await producto();
+    const mostrador = (await db.query<{ id: string }>(`select id from canales where nombre = 'Mostrador'`)).rows[0].id;
+    await expect(db.query('insert into precio_canal_manual (producto_id, tamano_id, canal_id, precio) values ($1, $2, $3, 70)', [p, unico, mostrador]))
+      .rejects.toThrow('Solo los canales con precio castigado aceptan precio manual');
+  });
+
   it('queda en la bitácora ligado al producto', async () => {
     const p = await producto();
     const finanzas = await crearUsuario(db, 'finanzas');

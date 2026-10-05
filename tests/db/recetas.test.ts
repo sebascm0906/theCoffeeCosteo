@@ -35,6 +35,14 @@ describe('recetas', () => {
     await expect(agregarLinea(db, a, { subrecetaId: a, cantidades: 10 })).rejects.toThrow('ya contiene a Mix A');
   });
 
+  it('no permite mover una línea a otra receta', async () => {
+    const p1 = await crearProducto(db, { nombre: 'P mover uno', precios: { Único: 50 } });
+    const p2 = await crearProducto(db, { nombre: 'P mover dos', precios: { Único: 50 } });
+    const linea = await agregarLinea(db, p1, { insumoId: cafe, cantidades: { Único: 10 } });
+    await expect(db.query('update receta_lineas set receta_id = $2 where id = $1', [linea, p2]))
+      .rejects.toThrow('No se puede mover una línea a otra receta; elimínala y créala de nuevo');
+  });
+
   it('solo acepta cantidades en tamaños que vende el producto', async () => {
     const p = await crearProducto(db, { nombre: 'P chica', precios: { Chica: 50 } });
     await expect(agregarLinea(db, p, { insumoId: cafe, cantidades: { Grande: 20 } })).rejects.toThrow(/no se vende en ese tamaño/);

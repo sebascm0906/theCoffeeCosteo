@@ -53,4 +53,33 @@ describe('cargarPlan', () => {
     const r = await db.query<{ n: number }>('select count(*)::int as n from recetas');
     expect(Number(r.rows[0].n)).toBe(0);
   });
+
+  it('si la verificación falla antes de confirmar no deja nada cargado', async () => {
+    const db = await crearDbLocal();
+    const plan = construirPlanCarga(libroDePrueba());
+    await expect(cargarPlan(db, plan, async () => { throw new Error('no cuadra'); })).rejects.toThrow('no cuadra');
+    for (const tabla of ['recetas', 'insumos']) {
+      const r = await db.query<{ n: number }>(`select count(*)::int as n from ${tabla}`);
+      expect(Number(r.rows[0].n)).toBe(0);
+    }
+  });
+
+  it('si la verificación pasa confirma la carga (y la verificación ve los datos)', async () => {
+    const db = await crearDbLocal();
+    let vistos = 0;
+    await cargarPlan(db, construirPlanCarga(libroDePrueba()), async (tx) => {
+      vistos = Number((await tx.query<{ n: number }>('select count(*)::int as n from insumos')).rows[0].n);
+    });
+    expect(vistos).toBe(3);
+    const r = await db.query<{ n: number }>('select count(*)::int as n from insumos');
+    expect(Number(r.rows[0].n)).toBe(3);
+  });
+
+  it('falla con un mensaje claro si falta un canal que la carga actualiza', async () => {
+    const db = await crearDbLocal();
+    await db.query(`update canales set nombre = 'Rappi viejo' where nombre = 'Rappi'`);
+    await expect(cargarPlan(db, construirPlanCarga(libroDePrueba()))).rejects.toThrow('Falta el canal "Rappi" en la base');
+    const r = await db.query<{ n: number }>('select count(*)::int as n from insumos');
+    expect(Number(r.rows[0].n)).toBe(0);
+  });
 });

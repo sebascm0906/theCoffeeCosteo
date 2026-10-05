@@ -1,8 +1,11 @@
 import type { Ejecutor } from '../db/ejecutor';
 import type { PlanCarga } from './plan-carga';
 
-/** Carga el plan en una sola transacción. Solo corre sobre una base sin insumos. */
-export async function cargarPlan(db: Ejecutor, plan: PlanCarga): Promise<void> {
+/**
+ * Carga el plan en una sola transacción. Solo corre sobre una base sin insumos.
+ * `verificar` corre dentro de la transacción, antes de confirmar: si lanza, se revierte todo.
+ */
+export async function cargarPlan(db: Ejecutor, plan: PlanCarga, verificar?: (db: Ejecutor) => Promise<void>): Promise<void> {
   const existentes = await db.query<{ n: number }>('select count(*)::int as n from insumos');
   if (Number(existentes.rows[0].n) > 0) {
     throw new Error('La base ya tiene insumos: la migración solo corre sobre una base vacía');
@@ -11,9 +14,12 @@ export async function cargarPlan(db: Ejecutor, plan: PlanCarga): Promise<void> {
   try {
     await db.query(`select set_config('app.origen', 'migracion', true)`);
     await db.query('update parametros set iva = $1, margen_objetivo = $2 where id = 1', [plan.parametros.iva, plan.parametros.margenObjetivo]);
-    await db.query(`update canales set comision_pct = $1, costo_envase = $2, markup_max_pct = $3 where nombre = 'Rappi'`,
-      [plan.rappi.comision, plan.rappi.envase, plan.rappi.markupMax]);
-    await db.query(`update canales set costo_envase = $1 where nombre = 'App propia'`, [plan.rappi.envase]);
+    const exigirCanal = (r: { rows: unknown[] }, nombre: string) => {
+      if (r.rows.length === 0) throw new Error(`Falta el canal "${nombre}" en la base`);
+    };
+    exigirCanal(await db.query(`update canales set comision_pct = $1, costo_envase = $2, markup_max_pct = $3 where nombre = 'Rappi' returning id`,
+      [plan.rappi.comision, plan.rappi.envase, plan.rappi.markupMax]), 'Rappi');
+    exigirCanal(await db.query(`update canales set costo_envase = $1 where nombre = 'App propia' returning id`, [plan.rappi.envase]), 'App propia');
 
     const tamanos = await db.query<{ id: string; nombre: string }>('select id, nombre from tamanos');
     const idTamano = new Map(tamanos.rows.map((t) => [t.nombre, t.id]));
@@ -59,6 +65,7 @@ export async function cargarPlan(db: Ejecutor, plan: PlanCarga): Promise<void> {
         `insert into bitacora (tabla, campo, valor_anterior, valor_nuevo, nota, origen) values ($1, $2, $3, $4, $5, 'migracion')`,
         [h.tabla, h.campo, h.anterior, h.nuevo, h.nota]);
     }
+    if (verificar) await verificar(db);
     await db.query('commit');
   } catch (error) {
     await db.query('rollback');
