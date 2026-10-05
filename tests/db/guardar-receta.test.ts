@@ -13,3 +13,30 @@ it('revierte datos y bitácora por cantidad inválida', async () => { const d = 
 it('detecta versión vieja después de escritura directa y conserva precios', async () => { const d = await datos('RPC Version'); const r = await guardar(operaciones, d); await comoUsuario(db, finanzas, () => db.query('update producto_tamanos set precio_lista=50 where producto_id=$1', [r.id])); await expect(guardar(operaciones, { ...d, ...r })).rejects.toThrow(/cambió/); const version = (await db.query<{ version: number }>('select version from recetas where id=$1', [r.id])).rows[0].version; await guardar(operaciones, { ...d, id: r.id, version }); expect(Number((await db.query<{ precio_lista: string }>('select precio_lista from producto_tamanos where producto_id=$1', [r.id])).rows[0].precio_lista)).toBe(50); });
 it('no permite enviar precios ni líneas ajenas', async () => { const d = await datos('RPC Campos'); await expect(guardar(operaciones, { ...d, precio_lista: 40 })).rejects.toThrow(/precios/); const r = await guardar(operaciones, d); const l = (await db.query<{ id: string }>('select id from receta_lineas where receta_id=$1', [r.id])).rows[0].id; const otra = await datos('RPC Ajena'); await expect(guardar(operaciones, { ...otra, lineas: [{ ...otra.lineas[0], id: l }] })).rejects.toThrow(/pertenece/); });
 it('anon no ejecuta la RPC', async () => { await db.exec('set role anon'); try { await expect(db.query(`select guardar_receta('{}')`)).rejects.toThrow(/permission denied/); } finally { await db.exec('reset role'); } });
+it('preserva IDs de líneas y audita cantidades eliminadas por escritura directa', async () => {
+  const d = await datos('RPC Identidad'); const r = await guardar(operaciones,d);
+  const l = (await db.query<{ id:string }>('select id from receta_lineas where receta_id=$1',[r.id])).rows[0].id;
+  const editado = await guardar(operaciones,{ ...d,...r,lineas:[{ ...d.lineas[0],id:l,cantidades:[{ tamano_id:tamano,cantidad:20 }] }] });
+  expect((await db.query<{ id:string }>('select id from receta_lineas where receta_id=$1',[r.id])).rows[0].id).toBe(l);
+  await comoUsuario(db,operaciones,() => db.query('delete from receta_lineas where id=$1',[l]));
+  expect((await db.query('select id from bitacora where receta_id=$1 and tabla=$2 and valor_nuevo is null',[r.id,'linea_cantidades'])).rows.length).toBeGreaterThan(0);
+  await expect(guardar(operaciones,{ ...d,...editado })).rejects.toThrow(/cambió/);
+});
+it('revierte un ciclo entre sub-recetas, y no admite nuevos componentes inactivos', async () => {
+  const base = { tipo:'subreceta',categoria_id:null,rendimiento:100,unidad_rendimiento:'ml',activo:true,tamanos:[],lineas:[] };
+  const a = await guardar(operaciones,{ ...base,nombre:'RPC Mix A' }), b = await guardar(operaciones,{ ...base,nombre:'RPC Mix B' });
+  await guardar(operaciones,{ ...base,...a,nombre:'RPC Mix A',lineas:[{ insumo_id:null,subreceta_id:b.id,orden:0,cantidades:[{ tamano_id:null,cantidad:10 }] }] });
+  await expect(guardar(operaciones,{ ...base,...b,nombre:'RPC Mix B',lineas:[{ insumo_id:null,subreceta_id:a.id,orden:0,cantidades:[{ tamano_id:null,cantidad:10 }] }] })).rejects.toThrow(/contiene/);
+  expect((await db.query('select id from receta_lineas where receta_id=$1',[b.id])).rows).toHaveLength(0);
+  const i = await crearInsumo(db,{ nombre:'RPC Inactivo',costoPaquete:1,presentacion:1 }); await db.query('update insumos set activo=false where id=$1',[i]);
+  const d = await datos('RPC Nuevo inactivo'); d.lineas[0].insumo_id=i; await expect(guardar(operaciones,d)).rejects.toThrow(/inactivo/);
+});
+it('retira tamaño con cantidades y manuales, y no borra precios del tamaño conservado', async () => {
+  const d = await datos('RPC Quitar tamaño'); const grande=await idTamano(db,'Grande'); d.tamanos.push(grande); d.lineas[0].cantidades.push({ tamano_id:grande,cantidad:20 });
+  const r=await guardar(operaciones,d); const rappi=(await db.query<{ id:string }>(`select id from canales where nombre='Rappi'`)).rows[0].id;
+  await comoUsuario(db,finanzas,() => db.query('insert into precio_canal_manual(producto_id,tamano_id,canal_id,precio) values($1,$2,$3,60)',[r.id,grande,rappi]));
+  const version=(await db.query<{ version:number }>('select version from recetas where id=$1',[r.id])).rows[0].version;
+  await guardar(operaciones,{ ...d,id:r.id,version,tamanos:[tamano],lineas:[{ ...d.lineas[0],cantidades:[{ tamano_id:tamano,cantidad:10 }] }] });
+  expect((await db.query('select * from precio_canal_manual where producto_id=$1',[r.id])).rows).toHaveLength(0);
+  expect((await db.query('select * from linea_cantidades lc join receta_lineas l on l.id=lc.linea_id where l.receta_id=$1 and lc.tamano_id=$2',[r.id,grande])).rows).toHaveLength(0);
+});

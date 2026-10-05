@@ -57,6 +57,15 @@ create trigger linea_cantidades_bitacora_cambio after insert or update on linea_
 create trigger linea_cantidades_bitacora_baja before delete on linea_cantidades
   for each row execute function auditar_baja_cantidad();
 
+create function limpiar_cantidades_antes_de_linea() returns trigger language plpgsql as $$
+begin
+  delete from public.linea_cantidades where linea_id = old.id;
+  return old;
+end $$;
+revoke all on function limpiar_cantidades_antes_de_linea() from public, anon, authenticated;
+create trigger receta_lineas_limpiar before delete on receta_lineas
+  for each row execute function limpiar_cantidades_antes_de_linea();
+
 create function guardar_receta(p_datos jsonb) returns jsonb
 language plpgsql security invoker set search_path = public, pg_temp as $$
 declare
