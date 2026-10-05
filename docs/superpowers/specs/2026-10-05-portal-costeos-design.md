@@ -27,7 +27,7 @@ Reemplazar el Excel de costeo por un portal web multiusuario donde los datos viv
 | Tamaños | Configurables (Chica, Grande, Único, …) |
 | Arquitectura | Cálculos en Postgres (vistas/funciones); el frontend solo muestra y captura |
 
-**Supuesto pendiente de confirmar:** App propia = precio de mostrador, sin comisión, con costo de envase. Si hay comisión de pasarela, se captura en `canales.comision_pct`.
+**App propia:** precio de mostrador, con costo de envase y **comisión de pasarela de pago (% por confirmar)**. Se migra con `comision_pct = 0` y `comision_confirmada = false`; mientras no se confirme, el portal muestra un aviso "Comisión de App propia por confirmar" en el tablero, en Configuración y junto a los márgenes de ese canal. Finanzas la captura en Configuración → Canales y todo se recalcula. La cuota fija por transacción que cobran algunas pasarelas no se prorratea por producto en v1.
 
 ## 3. Arquitectura
 
@@ -54,8 +54,9 @@ El número oficial siempre sale de las vistas de Postgres. El editor de recetas 
 
 **Configuración**
 - `parametros` — fila única: `iva` (0.16), `margen_objetivo` (0.55).
-- `canales` — `id, nombre, regla_precio ('mostrador'|'castigado'), comision_pct, costo_envase, markup_max_pct, orden`.
-  Valores iniciales: Mostrador ('mostrador', 0, 0, null); Rappi ('castigado', 0.18, 6.14, 0.25); App propia ('mostrador', 0, 6.14, null).
+- `canales` — `id, nombre, regla_precio ('mostrador'|'castigado'), comision_pct, comision_confirmada, costo_envase, markup_max_pct, orden`.
+  Valores iniciales: Mostrador ('mostrador', 0, true, 0, null); Rappi ('castigado', 0.18, true, 6.14, 0.25); App propia ('mostrador', 0, **false**, 6.14, null).
+  La comisión se aplica sobre la venta neta en todos los canales (misma base que Rappi en el Excel).
 - `tamanos` — `id, nombre, orden`. Iniciales: Chica, Grande, Único.
 - `unidades` — enum `gr | ml | pza`.
 
