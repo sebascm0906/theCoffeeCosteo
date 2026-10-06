@@ -1,4 +1,7 @@
 import type { ComponentProps } from 'react';
+export function usePathname() {
+  return '/productos';
+}
 export function useRouter() {
   return { push: () => {}, refresh: () => {} };
 }
