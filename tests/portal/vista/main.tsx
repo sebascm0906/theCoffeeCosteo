@@ -4,6 +4,7 @@ import { TablaResumen } from '../../../components/portal/tabla-resumen';
 import type { Resumen } from '../../../lib/supabase/database.types';
 import '../../../app/globals.css';
 import { VistaCatalogo } from './catalogo';
+import { VistaChat } from './chat';
 const fila = {
   producto_id: 'p',
   producto: 'Latte de prueba',
@@ -20,7 +21,9 @@ const fila = {
   margen_objetivo: 0.55,
 } as Resumen;
 createRoot(document.getElementById('root')!).render(
-  window.location.search.includes('catalogo') ? (
+  window.location.search.includes('chat') ? (
+    <VistaChat />
+  ) : window.location.search.includes('catalogo') ? (
     <VistaCatalogo />
   ) : (
     <main className="max-w-6xl mx-auto p-6 space-y-6">

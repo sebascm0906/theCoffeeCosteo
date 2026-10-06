@@ -4,6 +4,7 @@ import { salir } from '@/app/(auth)/login/actions';
 import { Navegacion } from '@/components/portal/navegacion';
 import { Marca } from '@/components/portal/marca';
 import { LogOut } from 'lucide-react';
+import { ChatPortal } from '@/components/portal/chat';
 export const dynamic = 'force-dynamic';
 export default async function PortalLayout({ children }: { children: React.ReactNode }) {
   const { perfil } = await sesion();
@@ -34,6 +35,7 @@ export default async function PortalLayout({ children }: { children: React.React
         </div>
       </aside>
       <main className="p-5 md:p-10 min-w-0 max-w-[1400px] w-full mx-auto space-y-6">{children}</main>
+      <ChatPortal key={perfil.user_id} />
     </div>
   );
 }
