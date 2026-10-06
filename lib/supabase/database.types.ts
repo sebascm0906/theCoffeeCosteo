@@ -173,7 +173,10 @@ export interface Database {
         Relationships: [];
       };
     };
-    Functions: { guardar_receta: { Args: { p_datos: Json }; Returns: Json } };
+    Functions: {
+      guardar_receta: { Args: { p_datos: Json }; Returns: Json };
+      mcp_lectura_habilitada: { Args: Record<string, never>; Returns: boolean };
+    };
     Enums: { unidad: Unidad };
     CompositeTypes: Record<string, never>;
   };
