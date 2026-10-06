@@ -1,4 +1,5 @@
 import { FormularioAcceso } from '@/components/portal/formulario-acceso';
+import { Marca } from '@/components/portal/marca';
 export default async function Login({ searchParams }: { searchParams: Promise<{ aviso?: string }> }) {
   const { aviso } = await searchParams;
   const configurado = Boolean(
@@ -8,7 +9,7 @@ export default async function Login({ searchParams }: { searchParams: Promise<{ 
     <main className="min-h-screen grid place-items-center p-6">
       <div className="w-full max-w-sm space-y-6">
         <div>
-          <p className="text-xs tracking-[.25em] uppercase text-primary">The Coffee</p>
+          <Marca />
           <h1>Portal de costeos</h1>
           <p className="text-muted-foreground mt-2">Recetas, costos y decisiones de precio.</p>
         </div>
