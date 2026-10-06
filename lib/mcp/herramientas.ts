@@ -21,36 +21,26 @@ function exigir<T>(r: { data: T | null; error: unknown }): NonNullable<T> {
 export function resultadoPagina<T>(filas: T[], p: number, n: number) {
   return { datos: filas.slice(0, n), pagina: p, siguiente_pagina: filas.length > n ? p + 1 : null };
 }
-export function registrarHerramientas(server: McpServer, db: Db) {
+export interface Consulta {
+  nombre: string;
+  descripcion: string;
+  esquema: z.ZodObject;
+  ejecutar: (entrada: unknown) => Promise<Record<string, unknown>>;
+}
+export function crearConsultas(db: Db): Consulta[] {
+  const consultas: Consulta[] = [];
   const registrar = <S extends z.ZodRawShape>(
     nombre: string,
     descripcion: string,
     esquema: z.ZodObject<S>,
     consultar: (entrada: z.output<z.ZodObject<S>>) => Promise<Record<string, unknown>>,
   ) => {
-    server.registerTool(
+    consultas.push({
       nombre,
-      { description: descripcion, inputSchema: esquema, annotations: anotaciones },
-      async (entrada) => {
-        try {
-          const datos = await consultar(esquema.parse(entrada));
-          return {
-            content: [{ type: 'text' as const, text: JSON.stringify(datos) }],
-            structuredContent: datos,
-          };
-        } catch {
-          return {
-            isError: true,
-            content: [
-              {
-                type: 'text' as const,
-                text: 'No se pudo completar la consulta. Revisa el identificador o vuelve a intentarlo.',
-              },
-            ],
-          };
-        }
-      },
-    );
+      descripcion,
+      esquema,
+      ejecutar: (entrada) => consultar(esquema.parse(entrada)),
+    });
   };
   registrar(
     'buscar_recetas',
@@ -264,4 +254,32 @@ export function registrarHerramientas(server: McpServer, db: Db) {
       );
     },
   );
+  return consultas;
+}
+export function registrarHerramientas(server: McpServer, db: Db) {
+  for (const c of crearConsultas(db)) {
+    server.registerTool(
+      c.nombre,
+      { description: c.descripcion, inputSchema: c.esquema, annotations: anotaciones },
+      async (entrada) => {
+        try {
+          const datos = await c.ejecutar(entrada);
+          return {
+            content: [{ type: 'text' as const, text: JSON.stringify(datos) }],
+            structuredContent: datos,
+          };
+        } catch {
+          return {
+            isError: true,
+            content: [
+              {
+                type: 'text' as const,
+                text: 'No se pudo completar la consulta. Revisa el identificador o vuelve a intentarlo.',
+              },
+            ],
+          };
+        }
+      },
+    );
+  }
 }
