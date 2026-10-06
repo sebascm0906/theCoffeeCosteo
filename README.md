@@ -8,7 +8,7 @@ Portal Next.js con acceso por invitación y base Supabase/Postgres: insumos, rec
 
 ## Estructura
 - `app`, `components`, `lib`: pantallas, formularios y clientes Supabase con sesión del usuario.
-- `supabase/migrations`: 8 migraciones; la octava agrega guardado atómico de recetas y control de versión también para líneas, cantidades y precios.
+- `supabase/migrations`: 9 migraciones; la octava agrega guardado atómico de recetas y la novena restringe los tokens OAuth a consultas.
 - `scripts/migracion`: migración del Excel (lectura, limpieza, plan de carga, conciliación y reporte).
 - `scripts/db`: utilidades para la base local con PGlite.
 - `tests`: pruebas de SQL, migración, paridad con el Excel, sesión, servicios y componentes del portal.
@@ -41,7 +41,11 @@ En Supabase, el usuario configura la URL local del sitio y las URLs permitidas d
 
 Se confirma el enlace y se establece contraseña; después se usa correo/contraseña para entrar. El flujo PKCE también acepta `/auth/confirm?code=...&next=/establecer-contrasena`. No hay registro libre. El administrador crea el perfil antes de que el invitado consulte datos.
 
-Para producción local: `npm run build` y `npm start`. El despliegue en Vercel sigue reservado para Plan 3.
+Para producción local: `npm run build` y `npm start`. El portal está conectado a Vercel mediante la rama `main`.
+
+## Claude en la web (MCP)
+
+Endpoint remoto: `https://the-coffee-costeo.vercel.app/mcp`. Solo consultas de recetas, ingredientes, costos y alertas, con Supabase OAuth y perfil activo. Primero publicar la migración 9 y configurar OAuth Server en Supabase. Guía de activación y conexión: [docs/mcp/claude-web.md](docs/mcp/claude-web.md). No usa claves administrativas ni la conexión DATABASE_URL del importador.
 
 ## Primer administrador y otras cuentas (acciones del usuario)
 
