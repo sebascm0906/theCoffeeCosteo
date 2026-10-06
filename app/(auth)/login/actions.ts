@@ -1,6 +1,7 @@
 'use server';
 import { servidor } from '@/lib/supabase/servidor';
 import { redirect } from 'next/navigation';
+import { rutaInterna } from '@/lib/portal/redireccion';
 export async function entrar(_: string, form: FormData) {
   const db = await servidor();
   const email = String(form.get('email') ?? '').trim(),
@@ -8,7 +9,7 @@ export async function entrar(_: string, form: FormData) {
   if (!email || !password) return 'Escribe tu correo y contraseña.';
   const r = await db.auth.signInWithPassword({ email, password });
   if (r.error) return 'No pudimos iniciar sesión. Revisa tu correo y contraseña.';
-  redirect('/');
+  redirect(rutaInterna(String(form.get('next') ?? '')));
 }
 export async function salir() {
   const db = await servidor();

@@ -3,6 +3,8 @@ import { NextResponse, type NextRequest } from 'next/server';
 import type { Database } from './lib/supabase/database.types';
 export async function proxy(request: NextRequest) {
   let response = NextResponse.next({ request });
+  if (request.nextUrl.pathname === '/mcp' || request.nextUrl.pathname.startsWith('/.well-known/'))
+    return response;
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL,
     key = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
   if (!url || !key) return response;

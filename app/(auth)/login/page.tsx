@@ -1,7 +1,11 @@
 import { FormularioAcceso } from '@/components/portal/formulario-acceso';
 import { Marca } from '@/components/portal/marca';
-export default async function Login({ searchParams }: { searchParams: Promise<{ aviso?: string }> }) {
-  const { aviso } = await searchParams;
+export default async function Login({
+  searchParams,
+}: {
+  searchParams: Promise<{ aviso?: string; next?: string }>;
+}) {
+  const { aviso, next } = await searchParams;
   const configurado = Boolean(
     process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY,
   );
@@ -23,7 +27,7 @@ export default async function Login({ searchParams }: { searchParams: Promise<{ 
             </p>
           )}
           {configurado ? (
-            <FormularioAcceso />
+            <FormularioAcceso next={next} />
           ) : (
             <p className="aviso">Falta configurar Supabase. Consulta las instrucciones del README.</p>
           )}

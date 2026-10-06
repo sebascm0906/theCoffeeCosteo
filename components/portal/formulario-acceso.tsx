@@ -2,10 +2,11 @@
 import { useActionState } from 'react';
 import { entrar, establecer } from '@/app/(auth)/login/actions';
 import { Button } from '@/components/ui/button';
-export function FormularioAcceso({ nueva = false }: { nueva?: boolean }) {
+export function FormularioAcceso({ nueva = false, next = '' }: { nueva?: boolean; next?: string }) {
   const [error, action, pending] = useActionState(nueva ? establecer : entrar, '');
   return (
     <form action={action} className="space-y-5">
+      {!nueva && <input type="hidden" name="next" value={next} />}
       {!nueva && (
         <label>
           Correo
