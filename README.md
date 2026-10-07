@@ -10,7 +10,7 @@ Portal Next.js con acceso por invitación y base Supabase/Postgres: insumos, rec
 ## Estructura
 
 - `app`, `components`, `lib`: pantallas, formularios y clientes Supabase con sesión del usuario.
-- `supabase/migrations`: 10 migraciones; incluyen guardado atómico de recetas, restricciones OAuth a consultas y cuotas del chat.
+- `supabase/migrations`: 11 migraciones; incluyen guardado atómico de recetas, restricciones OAuth a consultas, cuotas del chat y precios manuales de delivery independientes del precio de mostrador.
 - `scripts/migracion`: migración del Excel (lectura, limpieza, plan de carga, conciliación y reporte).
 - `scripts/db`: utilidades para la base local con PGlite.
 - `tests`: pruebas de SQL, migración, paridad con el Excel, sesión, servicios y componentes del portal.
